@@ -177,6 +177,21 @@
       background: rgba(255,255,255,.60);
     }
     .btn:hover{ background: rgba(255,255,255,.78); }
+
+    /* ★ 追加：写真エリア（カード上部） */
+    .photo{
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(26,33,51,.10);
+      margin: 0 0 14px;
+      background: rgba(255,255,255,.6);
+    }
+    .photo img{
+      display:block;
+      width:100%;
+      height:180px;     /* 好みで調整：150〜220 */
+      object-fit:cover; /* はみ出た分は自動でトリミング */
+    }
   </style>
 </head>
 <body>
@@ -193,6 +208,11 @@
       </div>
 
       <div class="card">
+        <!-- ★ 追加：全員共通の写真（img/header.jpg） -->
+        <div class="photo">
+          <img src="img/header.jpg" alt="Photo" />
+        </div>
+
         <h1 id="title">Message</h1>
         <p class="to" id="to">To: </p>
         <div class="msg" id="msg"></div>
