@@ -6,11 +6,11 @@
   <title>Message Card</title>
   <style>
     :root{
-      --bg:#f3efe8;         /* 背景の紙色 */
-      --bg2:#eee7dc;        /* 影側の紙色 */
-      --paper:#fbf8f2;      /* ステージの紙 */
-      --paper2:#f2eadf;     /* ほんのり濃い紙 */
-      --ink:#1a2133;        /* 文字色 */
+      --bg:#f3efe8;
+      --bg2:#eee7dc;
+      --paper:#fbf8f2;
+      --paper2:#f2eadf;
+      --ink:#1a2133;
       --muted:rgba(26,33,51,.65);
       --line:rgba(26,33,51,.12);
       --shadow: 0 18px 50px rgba(0,0,0,.12);
@@ -27,8 +27,6 @@
       align-items:center;
       justify-content:center;
       padding:24px;
-
-      /* 紙のような背景（うっすら立体） */
       background:
         radial-gradient(900px 600px at 50% -10%, rgba(255,255,255,.75), rgba(255,255,255,0) 60%),
         radial-gradient(900px 700px at 70% 110%, rgba(0,0,0,.06), rgba(0,0,0,0) 60%),
@@ -45,13 +43,11 @@
       letter-spacing:.06em;
     }
 
-    /* 背景の“ガラス枠” → 紙のカード台紙 */
     .stage{
       position:relative;
       border-radius:22px;
       padding:28px;
       overflow:hidden;
-
       background:
         radial-gradient(600px 260px at 30% 10%, rgba(255,255,255,.75), rgba(255,255,255,0) 65%),
         linear-gradient(180deg, var(--paper), var(--paper2));
@@ -59,10 +55,8 @@
       box-shadow: var(--shadow);
     }
 
-    /* キラキラの回転光は上品さのため無効化（HTMLに残ってても消える） */
     .spark{ display:none; }
 
-    /* envelope */
     .envelope{
       width:min(420px, 100%);
       aspect-ratio: 16/10;
@@ -71,7 +65,6 @@
       transform: translateY(10px);
     }
 
-    /* 封筒の胴体：紙っぽい */
     .env-body{
       position:absolute; inset:0;
       background:
@@ -82,7 +75,6 @@
       box-shadow: 0 12px 28px rgba(0,0,0,.10);
     }
 
-    /* フタ：紙（少し明るい） */
     .env-flap{
       position:absolute; left:0; right:0; top:0;
       height:58%;
@@ -94,7 +86,6 @@
       border-bottom:none;
       clip-path: polygon(0 0, 100% 0, 50% 100%);
       border-radius:18px 18px 0 0;
-
       animation: open 1.45s cubic-bezier(.2,.9,.2,1) forwards;
     }
 
@@ -104,7 +95,6 @@
       100% { transform: rotateX(-160deg); }
     }
 
-    /* 手紙：白い紙 */
     .letter{
       position:absolute; left:8%; right:8%; bottom:10%;
       height:72%;
@@ -114,7 +104,6 @@
       border:1px solid rgba(26,33,51,.14);
       border-radius:14px;
       box-shadow: 0 10px 22px rgba(0,0,0,.10);
-
       transform: translateY(28px);
       opacity:0;
       animation: rise 1.05s cubic-bezier(.18,.9,.22,1) .55s forwards;
@@ -124,7 +113,6 @@
       to { transform: translateY(-18px); opacity:1; }
     }
 
-    /* メッセージカード：紙（ガラスをやめる） */
     .card{
       background:
         radial-gradient(520px 220px at 25% 10%, rgba(255,255,255,.85), rgba(255,255,255,0) 65%),
@@ -133,7 +121,6 @@
       border-radius:18px;
       padding:20px 20px 16px;
       box-shadow: 0 16px 34px rgba(0,0,0,.10);
-
       opacity:0;
       transform: translateY(10px);
       animation: show .85s cubic-bezier(.2,.85,.2,1) 1.35s forwards;
@@ -141,7 +128,6 @@
 
     @keyframes show { to { opacity:1; transform: translateY(0); } }
 
-    /* エラー表示だけはすぐ見えるように */
     .card.is-error{
       opacity:1 !important;
       transform:none !important;
@@ -157,7 +143,13 @@
       font-size:14px;
     }
 
-    .msg{ white-space:pre-wrap; line-height:1.9; font-size:16px; letter-spacing:.01em; }
+    .msg{
+      white-space:pre-wrap;
+      line-height:1.9;
+      font-size:16px;
+      letter-spacing:.01em;
+      word-break: break-word;
+    }
 
     .sig{
       margin-top:16px;
@@ -185,7 +177,6 @@
     }
     .btn:hover{ background: rgba(255,255,255,.78); }
 
-    /* 写真（全員共通） */
     .photo{
       border-radius: 14px;
       overflow: hidden;
@@ -196,8 +187,29 @@
     .photo img{
       display:block;
       width:100%;
-      height:180px;      /* 好みで調整：150〜220 */
-      object-fit:cover;  /* はみ出た分は自動トリミング */
+      height:180px;
+      object-fit:cover;
+    }
+    .photo.is-hidden{
+      display:none;
+    }
+
+    /* デバッグ情報（必要時だけ表示） */
+    .debug{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px dashed rgba(26,33,51,.15);
+      background: rgba(255,255,255,.45);
+      color: rgba(26,33,51,.70);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:12px;
+      line-height:1.5;
+      white-space:pre-wrap;
+      display:none;
+    }
+    .debug.show{
+      display:block;
     }
   </style>
 </head>
@@ -216,15 +228,16 @@
       </div>
 
       <div class="card" id="card">
-        <div class="photo">
-          <!-- 画像はリポジトリ内に img/header.jpg を置いてください -->
-          <img src="img/header.jpg" alt="Photo" />
+        <div class="photo" id="photoBox">
+          <img id="headerPhoto" src="img/header.jpg" alt="" />
         </div>
 
         <h1 id="title">Message</h1>
         <p class="to" id="to"></p>
         <div class="msg" id="msg"></div>
         <div class="sig" id="sig"></div>
+
+        <div class="debug" id="debug"></div>
 
         <div class="footer">
           <a class="btn" href="javascript:window.scrollTo({top:0,behavior:'smooth'})">もう一度開封する</a>
@@ -236,49 +249,90 @@
   <script>
     function setText(id, text){
       const el = document.getElementById(id);
-      if(!el) return;
+      if (!el) return;
       el.textContent = (text ?? "").toString();
     }
 
-    function showError(message){
+    function showDebug(text){
+      const el = document.getElementById("debug");
+      if (!el) return;
+      el.textContent = text;
+      el.classList.add("show");
+    }
+
+    function hideDebug(){
+      const el = document.getElementById("debug");
+      if (!el) return;
+      el.textContent = "";
+      el.classList.remove("show");
+    }
+
+    function showError(message, detail){
       const card = document.getElementById("card");
-      if(card) card.classList.add("is-error");
+      if (card) card.classList.add("is-error");
+
       setText("title", "Message");
       setText("to", "");
       setText("msg", message);
       setText("sig", "");
+
+      if (detail) showDebug(detail);
     }
 
     async function loadMessage(){
       const params = new URLSearchParams(location.search);
       const id = params.get("id");
 
-      // 重要：idが無い場合は表示しない（事故防止）
-      if(!id){
+      // id必須
+      if (!id){
         showError("リンクが不正です（idがありません）。\nNFCタグから開いてください。");
         return;
       }
 
-      // ランダムIDをそのままファイル名にする（推測しにくい）
-      // messages/<random-id>.json を読み込む
-      const url = `messages/${encodeURIComponent(id)}.json?v=${Date.now()}`; // キャッシュ回避
+      // 手動で ?v=1 を付けた時はそれを使う。無ければ現在時刻を使う
+      const v = params.get("v") || Date.now().toString();
+      const filePath = `messages/${encodeURIComponent(id)}.json`;
+      const url = `${filePath}?v=${encodeURIComponent(v)}`;
 
       try{
         const res = await fetch(url, { cache: "no-store" });
-        if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const d = await res.json();
+        if (!res.ok){
+          throw new Error(`HTTP ${res.status} (${res.statusText || "fetch failed"})`);
+        }
+
+        let d;
+        try{
+          d = await res.json();
+        }catch(parseErr){
+          throw new Error(`JSON parse error: ${parseErr.message}`);
+        }
 
         setText("title", d.title || "Message");
         setText("to", d.to ? `To: ${d.to}` : "");
         setText("msg", d.msg || "");
         setText("sig", d.sig || "");
+        hideDebug();
 
       }catch(err){
-        showError(`メッセージが見つかりませんでした。\n\n読み込み先: messages/${id}.json\nエラー: ${err}`);
-        console.error(err);
+        showError(
+          "メッセージが見つかりませんでした。",
+          `id: ${id}\n読み込み先: ${filePath}\n詳細: ${String(err)}`
+        );
+        console.error("[loadMessage error]", err);
       }
     }
+
+    // 画像が無い場合は枠ごと隠す（"Photo" を出さない）
+    (function setupPhotoFallback(){
+      const img = document.getElementById("headerPhoto");
+      const box = document.getElementById("photoBox");
+      if (!img || !box) return;
+
+      img.addEventListener("error", function(){
+        box.classList.add("is-hidden");
+      });
+    })();
 
     loadMessage();
   </script>
