@@ -60,7 +60,7 @@
     .envelope{
       width:min(420px, 100%);
       aspect-ratio: 16/10;
-      margin: 8px auto 18px;
+      margin: 8px auto 0;
       position:relative;
       transform: translateY(10px);
     }
@@ -87,6 +87,8 @@
       clip-path: polygon(0 0, 100% 0, 50% 100%);
       border-radius:18px 18px 0 0;
       animation: open 1.45s cubic-bezier(.2,.9,.2,1) forwards;
+      z-index: 3;
+      backface-visibility: hidden;
     }
 
     @keyframes open{
@@ -95,46 +97,45 @@
       100% { transform: rotateX(-160deg); }
     }
 
+    /* 封筒から出てくる手紙（ここに画像＋メッセージを表示） */
     .letter{
-      position:absolute; left:8%; right:8%; bottom:10%;
+      position:absolute;
+      left:8%;
+      right:8%;
+      bottom:10%;
       height:72%;
+      z-index: 2;
+
       background:
         radial-gradient(380px 220px at 25% 10%, rgba(255,255,255,.95), rgba(255,255,255,0) 65%),
-        linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,244,237,.92));
+        linear-gradient(180deg, rgba(255,255,255,.95), rgba(248,244,237,.95));
       border:1px solid rgba(26,33,51,.14);
       border-radius:14px;
       box-shadow: 0 10px 22px rgba(0,0,0,.10);
+
       transform: translateY(28px);
       opacity:0;
       animation: rise 1.05s cubic-bezier(.18,.9,.22,1) .55s forwards;
+
+      overflow:hidden;
     }
 
     @keyframes rise{
       to { transform: translateY(-18px); opacity:1; }
     }
 
-    .card{
-      background:
-        radial-gradient(520px 220px at 25% 10%, rgba(255,255,255,.85), rgba(255,255,255,0) 65%),
-        linear-gradient(180deg, rgba(251,248,242,.98), rgba(241,233,222,.98));
-      border:1px solid rgba(26,33,51,.12);
-      border-radius:18px;
-      padding:20px 20px 16px;
-      box-shadow: 0 16px 34px rgba(0,0,0,.10);
-      opacity:0;
-      transform: translateY(10px);
-      animation: show .85s cubic-bezier(.2,.85,.2,1) 1.35s forwards;
+    .letter-inner{
+      height:100%;
+      padding:14px 14px 12px;
+      overflow:auto;
+      scrollbar-width: thin;
     }
 
-    @keyframes show { to { opacity:1; transform: translateY(0); } }
-
-    .card.is-error{
-      opacity:1 !important;
-      transform:none !important;
-      animation:none !important;
+    h1{
+      margin:0 0 6px;
+      font-size:22px;
+      letter-spacing:.02em;
     }
-
-    h1{ margin:0 0 6px; font-size:22px; letter-spacing:.02em; }
 
     .to{
       margin:0 0 14px;
@@ -178,7 +179,7 @@
     .btn:hover{ background: rgba(255,255,255,.78); }
 
     .photo{
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       border: 1px solid rgba(26,33,51,.10);
       margin: 0 0 14px;
@@ -187,14 +188,13 @@
     .photo img{
       display:block;
       width:100%;
-      height:180px;
+      height:150px;   /* 封筒内に収まりやすい高さに少し低め */
       object-fit:cover;
     }
     .photo.is-hidden{
       display:none;
     }
 
-    /* デバッグ情報（必要時だけ表示） */
     .debug{
       margin-top:10px;
       padding:10px 12px;
@@ -221,26 +221,27 @@
     <div class="stage">
       <div class="spark" aria-hidden="true"></div>
 
-      <div class="envelope" aria-hidden="true">
+      <div class="envelope">
         <div class="env-body"></div>
         <div class="env-flap"></div>
-        <div class="letter"></div>
-      </div>
 
-      <div class="card" id="card">
-        <div class="photo" id="photoBox">
-          <img id="headerPhoto" src="img/header.jpg" alt="" />
-        </div>
+        <div class="letter" id="letter">
+          <div class="letter-inner">
+            <div class="photo" id="photoBox">
+              <img id="headerPhoto" src="img/header.jpg" alt="" />
+            </div>
 
-        <h1 id="title">Message</h1>
-        <p class="to" id="to"></p>
-        <div class="msg" id="msg"></div>
-        <div class="sig" id="sig"></div>
+            <h1 id="title">Message</h1>
+            <p class="to" id="to"></p>
+            <div class="msg" id="msg"></div>
+            <div class="sig" id="sig"></div>
 
-        <div class="debug" id="debug"></div>
+            <div class="debug" id="debug"></div>
 
-        <div class="footer">
-          <a class="btn" href="javascript:window.scrollTo({top:0,behavior:'smooth'})">もう一度開封する</a>
+            <div class="footer">
+              <a class="btn" href="javascript:window.scrollTo({top:0,behavior:'smooth'})">もう一度開封する</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -268,8 +269,11 @@
     }
 
     function showError(message, detail){
-      const card = document.getElementById("card");
-      if (card) card.classList.add("is-error");
+      const letter = document.getElementById("letter");
+      if (letter){
+        letter.style.opacity = "1";
+        letter.style.transform = "translateY(-18px)";
+      }
 
       setText("title", "Message");
       setText("to", "");
@@ -283,13 +287,11 @@
       const params = new URLSearchParams(location.search);
       const id = params.get("id");
 
-      // id必須
       if (!id){
         showError("リンクが不正です（idがありません）。\nNFCタグから開いてください。");
         return;
       }
 
-      // 手動で ?v=1 を付けた時はそれを使う。無ければ現在時刻を使う
       const v = params.get("v") || Date.now().toString();
       const filePath = `messages/${encodeURIComponent(id)}.json`;
       const url = `${filePath}?v=${encodeURIComponent(v)}`;
@@ -323,7 +325,6 @@
       }
     }
 
-    // 画像が無い場合は枠ごと隠す（"Photo" を出さない）
     (function setupPhotoFallback(){
       const img = document.getElementById("headerPhoto");
       const box = document.getElementById("photoBox");
