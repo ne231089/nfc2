@@ -271,6 +271,8 @@
   </div>
 
   <script>
+    const DEFAULT_IMG = "img/header.jpg";
+
     function setText(id, text){
       const el = document.getElementById(id);
       if (!el) return;
@@ -289,6 +291,19 @@
       if (!el) return;
       el.textContent = "";
       el.classList.remove("show");
+    }
+
+    // ★ 追加：画像をデータから適用（無ければ共通画像）
+    function applyImageFromData(d){
+      const imgEl = document.getElementById("headerPhoto");
+      const imgBox = document.getElementById("letterPhotoBox");
+      if (!imgEl) return;
+
+      const nextSrc = (d && typeof d.img === "string" && d.img.trim()) ? d.img.trim() : DEFAULT_IMG;
+      imgEl.src = nextSrc;
+
+      // 以前エラーで隠れた枠を復帰
+      if (imgBox) imgBox.classList.remove("is-hidden");
     }
 
     function showError(message, detail){
@@ -329,6 +344,9 @@
         }catch(parseErr){
           throw new Error(`JSON parse error: ${parseErr.message}`);
         }
+
+        // ★ 追加：個別画像の反映（無ければ共通画像に戻す）
+        applyImageFromData(d);
 
         setText("title", d.title || "Message");
         setText("to", d.to ? `To: ${d.to}` : "");
